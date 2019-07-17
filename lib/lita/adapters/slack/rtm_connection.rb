@@ -31,8 +31,15 @@ module Lita
           @websocket_url = team_data.websocket_url
           @robot_id = team_data.self.id
 
-          @slack_users = team_data.users
-          @slack_channels = team_data.channels
+          fork do
+            Lita.logger.debug("Inserting #{team_data.users.size} users")
+            UserCreator.create_users(team_data.users, robot, @robot_id)
+            Lita.logger.debug("Done inserting users.")
+
+            Lita.logger.debug("Inserting #{team_data.channels.size} channels")
+            RoomCreator.create_rooms(team_data.channels, robot)
+            Lita.logger.debug("Done inserting channels.")
+          end
         end
 
         def im_for(user_id)
@@ -51,11 +58,6 @@ module Lita
             websocket.on(:open) do
               log.debug("Connected to the Slack Real Time Messaging API.")
               yield if block_given?
-              log.debug("Inserting #{slack_users.size} users")
-              UserCreator.create_users(slack_users, robot, robot_id)
-              log.debug("Inserting #{slack_channels.size} channels")
-              RoomCreator.create_rooms(slack_channels, robot)
-              log.debug("Done inserting channels.")
             end
             websocket.on(:message) { |event| receive_message(event) }
             websocket.on(:close) do |event|
@@ -93,8 +95,6 @@ module Lita
         attr_reader :robot_id
         attr_reader :websocket
         attr_reader :websocket_url
-        attr_reader :slack_users
-        attr_reader :slack_channels
 
         def log
           Lita.logger
