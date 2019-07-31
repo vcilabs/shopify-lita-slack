@@ -6,7 +6,6 @@ rvm:
 script: bundle exec rake
 before_install:
   - gem update --system
-  - gem install bundler -v 1.17.3
 services:
   - redis-server
 branches:
