@@ -45,6 +45,25 @@ describe Lita::Adapters::Slack::RTMConnection, lita: true do
     it "constructs a new RTMConnection with the results of rtm.start data" do
       expect(described_class.build(robot, config)).to be_an_instance_of(described_class)
     end
+
+    it "creates users with the results of rtm.start data" do
+      expect_any_instance_of(Lita::Adapters::Slack::RTMConnection).to receive(:fork).and_yield do
+        expect(Lita.logger).to receive(:debug).with("Inserting 1 users")
+        expect(Lita::Adapters::Slack::UserCreator).to receive(:create_users)
+      end
+
+      described_class.build(robot, config)
+    end
+
+    it "creates rooms with the results of rtm.start data" do
+      expect_any_instance_of(Lita::Adapters::Slack::RTMConnection).to receive(:fork).and_yield do
+        expect(Lita.logger).to receive(:debug).with("Inserting 1 channels")
+        expect(Lita::Adapters::Slack::RoomCreator).to receive(:create_rooms)
+      end
+
+      described_class.build(robot, config)
+    end
+
   end
 
   describe "#im_for" do
@@ -87,15 +106,6 @@ describe Lita::Adapters::Slack::RTMConnection, lita: true do
       end
     end
 
-    it 'creates users and rooms on websocket open' do
-      expect(Lita::Adapters::Slack::RoomCreator).to receive(:create_rooms)
-      expect(Lita::Adapters::Slack::UserCreator).to receive(:create_users)
-      with_websocket(subject, queue) do |websocket|
-        websocket.emit(:open)
-        expect(websocket).to be_an_instance_of(Faye::WebSocket::Client)
-      end
-    end
-
     it "dispatches incoming data to MessageHandler" do
       allow(Lita::Adapters::Slack::EventLoop).to receive(:defer).and_yield
       allow(Lita::Adapters::Slack::MessageHandler).to receive(:new).with(
@@ -115,9 +125,10 @@ describe Lita::Adapters::Slack::RTMConnection, lita: true do
     context "when the WebSocket is closed from outside" do
       it "shuts down the reactor" do
         with_websocket(subject, queue) do |websocket|
-            websocket.close
-            expect(EM.stopping?).to be_truthy
-          end
+          sleep 0.5 # intermittent test
+          websocket.close
+          expect(EM.stopping?).to be_truthy
+        end
       end
     end
 
