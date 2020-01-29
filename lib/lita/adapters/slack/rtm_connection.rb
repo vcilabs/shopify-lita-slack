@@ -64,8 +64,7 @@ module Lita
               log.info("Disconnected from Slack.")
               log.info(event.code)
               log.info(event.reason)
-              log.info("Trying to reconnect...")
-              self.run(queue, options)
+              EventLoop.safe_stop
             end
             websocket.on(:error) { |event| log.debug("WebSocket error: #{event.message}") }
 
