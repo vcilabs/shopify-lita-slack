@@ -46,29 +46,43 @@ module Lita
           im_mapping.im_for(user_id)
         end
 
-        def run(queue = nil, options = {})
-          EventLoop.run do
-            log.debug("Connecting to the Slack Real Time Messaging API.")
-            @websocket = Faye::WebSocket::Client.new(
-              websocket_url,
-              nil,
-              websocket_options.merge(options)
-            )
+        def create_websocket(queue, options, &block)
+          ws = Faye::WebSocket::Client.new(
+            websocket_url,
+            nil,
+            websocket_options.merge(options)
+          )
 
-            websocket.on(:open) do
-              log.debug("Connected to the Slack Real Time Messaging API.")
-              yield if block_given?
-            end
-            websocket.on(:message) { |event| receive_message(event) }
-            websocket.on(:close) do |event|
-              log.info("Disconnected from Slack.")
-              log.info(event.code)
-              log.info(event.reason)
+          ws.on(:open) do
+            log.debug("Connected to the Slack Real Time Messaging API.")
+            yield if block_given?
+          end
+          ws.on(:message) { |event| receive_message(event) }
+          ws.on(:close) do |event|
+            log.info("Disconnected from Slack: #{event.code} - #{event.reason}")
+
+            # Slack periodically closes the websocket connection
+            if event.code.to_s == '1006'
+              queue.delete(@websocket) if queue
+              @team_data = API.new(@config).rtm_start
+              @im_mapping = IMMapping.new(API.new(@config), @team_data.ims)
+              @websocket_url = @team_data.websocket_url
+              @robot_id = @team_data.self.id
+              @websocket = create_websocket(queue, options, &block)
+              queue << @websocket if queue
+            else
               EventLoop.safe_stop
             end
-            websocket.on(:error) { |event| log.debug("WebSocket error: #{event.message}") }
+          end
+          ws.on(:error) { |event| log.debug("WebSocket error: #{event.message}") }
+          ws
+        end
 
-            queue << websocket if queue
+        def run(queue = nil, options = {}, &block)
+          EventLoop.run do
+            log.debug("Connecting to the Slack Real Time Messaging API.")
+            @websocket = create_websocket(queue, options, &block)
+            queue << @websocket if queue
           end
         end
 
