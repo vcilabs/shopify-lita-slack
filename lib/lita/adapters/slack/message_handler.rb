@@ -171,7 +171,14 @@ module Lita
 
           return if from_self?(user)
 
-          dispatch_message(user)
+          case data["subtype"]
+          when "message_deleted"
+            robot.trigger(:message_deleted, data)
+          when "message_changed"
+            robot.trigger(:message_changed, data)
+          else
+            dispatch_message(user)
+          end
         end
 
         def handle_reaction
@@ -212,7 +219,7 @@ module Lita
         end
 
         # Types of messages Lita should dispatch to handlers.
-        SUPPORTED_MESSAGE_SUBTYPES = %w(me_message)
+        SUPPORTED_MESSAGE_SUBTYPES = %w(me_message message_deleted message_changed)
 
         def supported_subtype?
           subtype = data["subtype"]
