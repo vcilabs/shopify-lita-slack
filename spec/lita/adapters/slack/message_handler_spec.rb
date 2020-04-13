@@ -538,16 +538,25 @@ describe Lita::Adapters::Slack::MessageHandler, lita: true do
       let(:data) do
         {
           "type" => "message",
-          "subtype" => "message_deleted"
+          "subtype" => "message_deleted",
+          "previous_message" => { "text" => "message" },
+          "blocks" => [{ "type" => "text", "text" => "message" }],
+        }
+      end
+
+      let(:payload) do
+        {
+          "type" => "message",
+          "subtype" => "message_deleted",
         }
       end
 
       before do
-        allow(robot).to receive(:trigger).with(:message_deleted, data)
+        allow(robot).to receive(:trigger).with(:message_deleted, payload)
       end
 
       it "triggers the message_deleted event" do
-        expect(robot).to receive(:trigger).with(:message_deleted, data)
+        expect(robot).to receive(:trigger).with(:message_deleted, payload)
 
         subject.handle
       end
@@ -557,16 +566,27 @@ describe Lita::Adapters::Slack::MessageHandler, lita: true do
       let(:data) do
         {
           "type" => "message",
-          "subtype" => "message_changed"
+          "subtype" => "message_changed",
+          "previous_message" => {
+            "text" => "message",
+            "blocks" => [{ "type" => "text", "text" => "message" }],
+          }
+        }
+      end
+
+      let(:payload) do
+        {
+          "type" => "message",
+          "subtype" => "message_changed",
         }
       end
 
       before do
-        allow(robot).to receive(:trigger).with(:message_changed, data)
+        allow(robot).to receive(:trigger).with(:message_changed, payload)
       end
 
       it "triggers the message_changed event" do
-        expect(robot).to receive(:trigger).with(:message_changed, data)
+        expect(robot).to receive(:trigger).with(:message_changed, payload)
 
         subject.handle
       end
