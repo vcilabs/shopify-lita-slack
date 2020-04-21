@@ -534,6 +534,64 @@ describe Lita::Adapters::Slack::MessageHandler, lita: true do
       end
     end
 
+    context "with a message with message_deleted subtype" do
+      let(:data) do
+        {
+          "type" => "message",
+          "subtype" => "message_deleted",
+          "previous_message" => { "text" => "message" },
+          "blocks" => [{ "type" => "text", "text" => "message" }],
+        }
+      end
+
+      let(:payload) do
+        {
+          "type" => "message",
+          "subtype" => "message_deleted",
+        }
+      end
+
+      before do
+        allow(robot).to receive(:trigger).with(:message_deleted, payload)
+      end
+
+      it "triggers the message_deleted event" do
+        expect(robot).to receive(:trigger).with(:message_deleted, payload)
+
+        subject.handle
+      end
+    end
+
+    context "with a message with message_changed subtype" do
+      let(:data) do
+        {
+          "type" => "message",
+          "subtype" => "message_changed",
+          "previous_message" => {
+            "text" => "message",
+            "blocks" => [{ "type" => "text", "text" => "message" }],
+          }
+        }
+      end
+
+      let(:payload) do
+        {
+          "type" => "message",
+          "subtype" => "message_changed",
+        }
+      end
+
+      before do
+        allow(robot).to receive(:trigger).with(:message_changed, payload)
+      end
+
+      it "triggers the message_changed event" do
+        expect(robot).to receive(:trigger).with(:message_changed, payload)
+
+        subject.handle
+      end
+    end
+
     context "with a message from slackbot" do
       let(:data) do
         {

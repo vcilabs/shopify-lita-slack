@@ -124,7 +124,7 @@ module Lita
           data["channel"]
         end
 
-        def dispatch_message(user)
+        def dispatch_me_message(user)
           room = Lita::Room.find_by_id(channel)
           extensions = { timestamp: data["ts"], attachments: data["attachments"] }
           extensions[:thread_ts] = data["thread_ts"] if data["thread_ts"]
@@ -171,7 +171,17 @@ module Lita
 
           return if from_self?(user)
 
-          dispatch_message(user)
+          case data["subtype"]
+          when "message_deleted"
+            data.delete("previous_message")
+            data.delete("blocks")
+            robot.trigger(:message_deleted, data)
+          when "message_changed"
+            data.delete("previous_message")
+            robot.trigger(:message_changed, data)
+          else
+            dispatch_me_message(user)
+          end
         end
 
         def handle_reaction
@@ -212,7 +222,7 @@ module Lita
         end
 
         # Types of messages Lita should dispatch to handlers.
-        SUPPORTED_MESSAGE_SUBTYPES = %w(me_message)
+        SUPPORTED_MESSAGE_SUBTYPES = %w(me_message message_deleted message_changed)
 
         def supported_subtype?
           subtype = data["subtype"]
