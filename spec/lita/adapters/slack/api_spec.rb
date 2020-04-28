@@ -282,7 +282,7 @@ describe Lita::Adapters::Slack::API do
     end
   end
 
-   describe "#im_list" do
+  describe "#im_list" do
     let(:channel_id) { 'D024BFF1M' }
     let(:stubs) do
       Faraday::Adapter::Test::Stubs.new do |stub|
@@ -814,6 +814,161 @@ describe Lita::Adapters::Slack::API do
         response = subject.rtm_start
 
         expect(response.websocket_url).to eq('wss://example.com/')
+      end
+    end
+  end
+
+  describe "#conversations_list" do
+    describe "#conversations_list" do
+      let(:channel_id) { 'C024G4BGW' }
+      let(:channel_id_2) { 'C024G4BGY' }
+      let(:stubs) do
+        Faraday::Adapter::Test::Stubs.new do |stub|
+          stub.post('https://slack.com/api/conversations.list', token: token, limit: 1, types: "public_channel") do
+            [http_status, {}, http_response]
+          end
+          stub.post('https://slack.com/api/conversations.list', token: token, limit: 1, types: "public_channel", cursor: "dGVhbTpDMDI0RzRCR1k%3D") do
+            [http_status, {}, http_response_2]
+          end
+        end
+      end
+  
+      describe "with a successful response" do
+        let(:http_response) do
+          MultiJson.dump({
+            
+            "ok": true,
+            "channels": [
+                {
+                    "id": "C024G4BGW",
+                    "name": "announcements",
+                    "is_channel": true,
+                    "is_group": false,
+                    "is_im": false,
+                    "created": 1383618685,
+                    "is_archived": false,
+                    "is_general": true,
+                    "unlinked": 0,
+                    "name_normalized": "announcements",
+                    "is_shared": false,
+                    "parent_conversation": nil,
+                    "creator": "U024G4BGS",
+                    "is_ext_shared": false,
+                    "is_org_shared": false,
+                    "shared_team_ids": [
+                        "T024G4BGQ"
+                    ],
+                    "pending_shared": [],
+                    "pending_connected_team_ids": [],
+                    "is_pending_ext_shared": false,
+                    "is_member": true,
+                    "is_private": false,
+                    "is_mpim": false,
+                    "topic": {
+                        "value": "This channel goes to *all* of Shopify. Use #random for discussion about announcements.",
+                        "creator": "U031JV1FB",
+                        "last_set": 1428603629
+                    },
+                    "purpose": {
+                        "value": "The #announcements channel is for team-wide communication and announcements. All team members are in this channel.",
+                        "creator": "U030SUJBJ",
+                        "last_set": 1417712247
+                    },
+                    "previous_names": [
+                        "general"
+                    ],
+                    "num_members": 6735
+                }
+            ],
+            "response_metadata": {
+                "next_cursor": "dGVhbTpDMDI0RzRCR1k="
+            }
+          
+          })
+        end
+
+        let(:http_response_2) do
+          MultiJson.dump({
+            "ok": true,
+            "channels": [
+                {
+                    "id": "C024G4BGY",
+                    "name": "random",
+                    "is_channel": true,
+                    "is_group": false,
+                    "is_im": false,
+                    "created": 1383618685,
+                    "is_archived": false,
+                    "is_general": false,
+                    "unlinked": 0,
+                    "name_normalized": "random",
+                    "is_shared": false,
+                    "parent_conversation": nil,
+                    "creator": "U024G4BGS",
+                    "is_ext_shared": false,
+                    "is_org_shared": false,
+                    "shared_team_ids": [
+                        "T024G4BGQ"
+                    ],
+                    "pending_shared": [],
+                    "pending_connected_team_ids": [],
+                    "is_pending_ext_shared": false,
+                    "is_member": false,
+                    "is_private": false,
+                    "is_mpim": false,
+                    "topic": {
+                        "value": "Open Bar 3.0",
+                        "creator": "U030TGHMQ",
+                        "last_set": 1416324878
+                    },
+                    "purpose": {
+                        "value": "A place for non-work banter, links, articles of interest, humor or anything else which you'd like concentrated in some place other than work-related channels.",
+                        "creator": "",
+                        "last_set": 0
+                    },
+                    "previous_names": [],
+                    "num_members": 2341
+                }
+            ],
+            "response_metadata": {
+                "next_cursor": nil
+            }
+          })
+        end
+  
+        it "returns a response with the Channel's ID" do
+          response = subject.conversations_list(page_limit: 1)
+
+          expect(response['channels'].size).to eq(2)
+          expect(response['channels'].first['id']).to eq(channel_id)
+          expect(response['channels'][1]['id']).to eq(channel_id_2)
+        end
+      end
+  
+      describe "with a Slack error" do
+        let(:http_response) do
+          MultiJson.dump({
+            ok: false,
+            error: 'invalid_auth'
+          })
+        end
+  
+        it "raises a RuntimeError" do
+          expect { subject.conversations_list(page_limit: 1) }.to raise_error(
+            "Slack API call to conversations.list returned an error: invalid_auth."
+          )
+        end
+      end
+  
+      describe "with an HTTP error" do
+        let(:http_status) { 422 }
+        let(:http_response) { '' }
+  
+        it "raises a RuntimeError" do
+          expect { subject.conversations_list(page_limit: 1) }.to raise_error(
+            "Slack API call to conversations.list failed with status code 422: ''. Headers: {}"
+          )
+        end
       end
     end
   end
