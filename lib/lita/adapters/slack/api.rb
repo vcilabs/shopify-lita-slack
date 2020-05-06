@@ -47,6 +47,35 @@ module Lita
           call_api("im.list")
         end
 
+        def conversations_list(types: ["public_channel"], page_limit: nil)
+          api_params = {
+            limit: page_limit,
+            types: types.join(",")
+          }
+
+          result = call_api(
+            "conversations.list",
+            api_params
+          )
+
+          next_cursor = fetch_cursor(result)
+          old_cursor = nil
+          
+          while !next_cursor.empty? && next_cursor != old_cursor
+            old_cursor = next_cursor
+            api_params[:cursor] = next_cursor
+
+            next_page = call_api(
+              "conversations.list",
+              api_params
+            )
+
+            next_cursor = fetch_cursor(next_page)            
+            result['channels'] += next_page['channels']
+          end
+          result
+        end
+
         def send_attachments(room_or_user, attachments)
           call_api(
             "chat.postMessage",
@@ -156,6 +185,11 @@ module Lita
           end
 
           MultiJson.load(response.body)
+        end
+
+        def fetch_cursor(page)
+          next_cursor = page.dig("response_metadata", "next_cursor")
+          ERB::Util.url_encode(next_cursor)
         end
       end
     end
