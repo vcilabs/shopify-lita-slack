@@ -124,7 +124,7 @@ describe Lita::Adapters::Slack::API do
     let(:channel_id) { 'C024BE91L' }
     let(:stubs) do
       Faraday::Adapter::Test::Stubs.new do |stub|
-        stub.post('https://slack.com/api/conversations.list', token: token, limit: nil, types: "public_channel") do
+        stub.post('https://slack.com/api/conversations.list', token: token, limit: nil, types: 'public_channel') do
           [http_status, {}, http_response]
         end
       end
@@ -178,7 +178,7 @@ describe Lita::Adapters::Slack::API do
     let(:channel_id) { 'G024BE91L' }
     let(:stubs) do
       Faraday::Adapter::Test::Stubs.new do |stub|
-        stub.post('https://slack.com/api/groups.list', token: token) do
+        stub.post('https://slack.com/api/conversations.list', token: token, limit: nil, types: 'private_channel') do
           [http_status, {}, http_response]
         end
       end
@@ -211,7 +211,7 @@ describe Lita::Adapters::Slack::API do
 
       it "raises a RuntimeError" do
         expect { subject.groups_list }.to raise_error(
-          "Slack API call to groups.list returned an error: invalid_auth."
+          "Slack API call to conversations.list returned an error: invalid_auth."
         )
       end
     end
@@ -222,7 +222,7 @@ describe Lita::Adapters::Slack::API do
 
       it "raises a RuntimeError" do
         expect { subject.groups_list }.to raise_error(
-          "Slack API call to groups.list failed with status code 422: ''. Headers: {}"
+          "Slack API call to conversations.list failed with status code 422: ''. Headers: {}"
         )
       end
     end
