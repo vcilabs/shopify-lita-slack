@@ -74,12 +74,6 @@ describe Lita::Adapters::Slack, lita: true do
 
     describe "via the Web API, retrieving the roster for a group/mpim channel" do
       let(:room_source) { Lita::Source.new(room: 'G024BE91L') }
-      let(:response) do
-        {
-          ok: true,
-          groups: [{ id: 'G024BE91L' }]
-        }
-      end
       let(:api) { instance_double('Lita::Adapters::Slack::API') }
 
       before do
@@ -96,12 +90,6 @@ describe Lita::Adapters::Slack, lita: true do
 
     describe "via the Web API, retrieving the roster for an im channel" do
       let(:room_source) { Lita::Source.new(room: 'D024BFF1M') }
-      let(:response) do
-        {
-          ok: true,
-          ims: [{ id: 'D024BFF1M' }]
-        }
-      end
       let(:api) { instance_double('Lita::Adapters::Slack::API') }
 
       before do
