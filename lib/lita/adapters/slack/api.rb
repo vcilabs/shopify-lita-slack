@@ -32,18 +32,18 @@ module Lita
         end
 
         def channels_list
-          call_api("channels.list")
+          conversations_list(types: ["public_channel"])
         end
 
-        def groups_list
+        def groups_list #private_channel
           call_api("groups.list")
         end
 
-        def mpim_list
+        def mpim_list #mpim
           call_api("mpim.list")
         end
 
-        def im_list
+        def im_list #im
           call_api("im.list")
         end
 
