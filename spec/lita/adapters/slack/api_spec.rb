@@ -232,7 +232,7 @@ describe Lita::Adapters::Slack::API do
     let(:channel_id) { 'G024BE91L' }
     let(:stubs) do
       Faraday::Adapter::Test::Stubs.new do |stub|
-        stub.post('https://slack.com/api/mpim.list', token: token) do
+        stub.post('https://slack.com/api/conversations.list', token: token, limit: nil, types: 'mpim') do
           [http_status, {}, http_response]
         end
       end
@@ -265,7 +265,7 @@ describe Lita::Adapters::Slack::API do
 
       it "raises a RuntimeError" do
         expect { subject.mpim_list }.to raise_error(
-          "Slack API call to mpim.list returned an error: invalid_auth."
+          "Slack API call to conversations.list returned an error: invalid_auth."
         )
       end
     end
@@ -276,7 +276,7 @@ describe Lita::Adapters::Slack::API do
 
       it "raises a RuntimeError" do
         expect { subject.mpim_list }.to raise_error(
-          "Slack API call to mpim.list failed with status code 422: ''. Headers: {}"
+          "Slack API call to conversations.list failed with status code 422: ''. Headers: {}"
         )
       end
     end

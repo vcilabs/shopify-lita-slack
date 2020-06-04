@@ -39,8 +39,8 @@ module Lita
           conversations_list(types: ["private_channel"])
         end
 
-        def mpim_list #mpim
-          call_api("mpim.list")
+        def mpim_list
+          conversations_list(types: ["mpim"])
         end
 
         def im_list #im
