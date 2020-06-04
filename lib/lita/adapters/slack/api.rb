@@ -32,19 +32,25 @@ module Lita
         end
 
         def channels_list
-          call_api("channels.list")
+          conversations_list(types: ["public_channel"])
         end
 
         def groups_list
-          call_api("groups.list")
+          response = conversations_list(types: ["private_channel"])
+          response['groups'] = response['channels']
+          response
         end
 
         def mpim_list
-          call_api("mpim.list")
+          response = conversations_list(types: ["mpim"])
+          response['groups'] = response['channels']
+          response
         end
 
         def im_list
-          call_api("im.list")
+          response = conversations_list(types: ["im"])
+          response['ims'] = response['channels']
+          response
         end
 
         def conversations_list(types: ["public_channel"], page_limit: nil)
