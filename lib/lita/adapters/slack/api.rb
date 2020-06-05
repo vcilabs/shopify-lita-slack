@@ -31,33 +31,33 @@ module Lita
           call_api("channels.info", channel: channel_id)
         end
 
-        def channels_list
-          conversations_list(types: ["public_channel"])
+        def channels_list(params: {})
+          conversations_list(types: ["public_channel"], params: params)
         end
 
-        def groups_list
-          response = conversations_list(types: ["private_channel"])
+        def groups_list(params: {})
+          response = conversations_list(types: ["private_channel"], params: params)
           response['groups'] = response['channels']
           response
         end
 
-        def mpim_list
-          response = conversations_list(types: ["mpim"])
+        def mpim_list(params: {})
+          response = conversations_list(types: ["mpim"], params: params)
           response['groups'] = response['channels']
           response
         end
 
-        def im_list
-          response = conversations_list(types: ["im"])
+        def im_list(params: {})
+          response = conversations_list(types: ["im"], params: params)
           response['ims'] = response['channels']
           response
         end
 
-        def conversations_list(types: ["public_channel"], page_limit: nil)
-          api_params = {
+        def conversations_list(types: ["public_channel"], page_limit: nil, params: {})
+          api_params = params.merge({
             limit: page_limit,
             types: types.join(",")
-          }
+          })
 
           result = call_api(
             "conversations.list",
