@@ -147,6 +147,31 @@ describe Lita::Adapters::Slack::API do
       end
     end
 
+    describe "with parameters" do
+      let(:stubs) do
+        Faraday::Adapter::Test::Stubs.new do |stub|
+          stub.post('https://slack.com/api/conversations.list', token: token, limit: nil, types: 'public_channel', exclude_archived: true) do
+            [http_status, {}, http_response]
+          end
+        end
+      end
+      let(:http_response) do
+        MultiJson.dump({
+            ok: true,
+            channels: [{
+                id: 'C024BE91L',
+                is_archived: false,
+            }]
+        })
+      end
+
+      it "returns a response with the Channel's ID" do
+        response = subject.channels_list(params: { exclude_archived: true })
+
+        expect(response['channels'].first['id']).to eq(channel_id)
+      end
+    end
+
     describe "with a Slack error" do
       let(:http_response) do
         MultiJson.dump({
