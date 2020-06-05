@@ -124,7 +124,7 @@ describe Lita::Adapters::Slack::API do
     let(:channel_id) { 'C024BE91L' }
     let(:stubs) do
       Faraday::Adapter::Test::Stubs.new do |stub|
-        stub.post('https://slack.com/api/conversations.list', token: token, limit: nil, types: 'public_channel') do
+        stub.post('https://slack.com/api/conversations.list', token: token, types: 'public_channel') do
           [http_status, {}, http_response]
         end
       end
@@ -150,7 +150,7 @@ describe Lita::Adapters::Slack::API do
     describe "with parameters" do
       let(:stubs) do
         Faraday::Adapter::Test::Stubs.new do |stub|
-          stub.post('https://slack.com/api/conversations.list', token: token, limit: nil, types: 'public_channel', exclude_archived: true) do
+          stub.post('https://slack.com/api/conversations.list', token: token, types: 'public_channel', exclude_archived: true) do
             [http_status, {}, http_response]
           end
         end
@@ -203,7 +203,7 @@ describe Lita::Adapters::Slack::API do
     let(:channel_id) { 'G024BE91L' }
     let(:stubs) do
       Faraday::Adapter::Test::Stubs.new do |stub|
-        stub.post('https://slack.com/api/conversations.list', token: token, limit: nil, types: 'private_channel') do
+        stub.post('https://slack.com/api/conversations.list', token: token, types: 'private_channel') do
           [http_status, {}, http_response]
         end
       end
@@ -257,7 +257,7 @@ describe Lita::Adapters::Slack::API do
     let(:channel_id) { 'G024BE91L' }
     let(:stubs) do
       Faraday::Adapter::Test::Stubs.new do |stub|
-        stub.post('https://slack.com/api/conversations.list', token: token, limit: nil, types: 'mpim') do
+        stub.post('https://slack.com/api/conversations.list', token: token, types: 'mpim') do
           [http_status, {}, http_response]
         end
       end
@@ -311,7 +311,7 @@ describe Lita::Adapters::Slack::API do
     let(:channel_id) { 'D024BFF1M' }
     let(:stubs) do
       Faraday::Adapter::Test::Stubs.new do |stub|
-        stub.post('https://slack.com/api/conversations.list', token: token, limit: nil, types: 'im') do
+        stub.post('https://slack.com/api/conversations.list', token: token, types: 'im') do
           [http_status, {}, http_response]
         end
       end
@@ -962,7 +962,7 @@ describe Lita::Adapters::Slack::API do
         end
   
         it "returns a response with the Channel's ID" do
-          response = subject.conversations_list(page_limit: 1)
+          response = subject.conversations_list(params: { limit: 1 })
 
           expect(response['channels'].size).to eq(2)
           expect(response['channels'].first['id']).to eq(channel_id)
@@ -979,7 +979,7 @@ describe Lita::Adapters::Slack::API do
         end
   
         it "raises a RuntimeError" do
-          expect { subject.conversations_list(page_limit: 1) }.to raise_error(
+          expect { subject.conversations_list(params: { limit: 1 }) }.to raise_error(
             "Slack API call to conversations.list returned an error: invalid_auth."
           )
         end
@@ -990,7 +990,7 @@ describe Lita::Adapters::Slack::API do
         let(:http_response) { '' }
   
         it "raises a RuntimeError" do
-          expect { subject.conversations_list(page_limit: 1) }.to raise_error(
+          expect { subject.conversations_list(params: { limit: 1 }) }.to raise_error(
             "Slack API call to conversations.list failed with status code 422: ''. Headers: {}"
           )
         end
