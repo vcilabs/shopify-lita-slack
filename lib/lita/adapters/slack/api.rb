@@ -53,15 +53,17 @@ module Lita
           response
         end
 
-        def conversations_list(types: ["public_channel"], page_limit: nil, params: {})
-          api_params = params.merge({
-            limit: page_limit,
-            types: types.join(",")
+        def conversations_list(types: ["public_channel"], params: {})
+          params.merge!({
+            types: types.join(',')
           })
+          call_paginated_api(method: 'conversations.list', params: params)
+        end
 
+        def call_paginated_api(method:, params:)
           result = call_api(
-            "conversations.list",
-            api_params
+            method,
+            params
           )
 
           next_cursor = fetch_cursor(result)
@@ -69,11 +71,11 @@ module Lita
           
           while !next_cursor.empty? && next_cursor != old_cursor
             old_cursor = next_cursor
-            api_params[:cursor] = next_cursor
+            params[:cursor] = next_cursor
 
             next_page = call_api(
-              "conversations.list",
-              api_params
+              method,
+              params
             )
 
             next_cursor = fetch_cursor(next_page)            
