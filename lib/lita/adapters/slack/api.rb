@@ -57,10 +57,10 @@ module Lita
           params.merge!({
             types: types.join(',')
           })
-          call_paginated_api(method: 'conversations.list', params: params)
+          call_paginated_api(method: 'conversations.list', params: params, result_field: 'channels')
         end
 
-        def call_paginated_api(method:, params:)
+        def call_paginated_api(method:, params:, result_field:)
           result = call_api(
             method,
             params
@@ -68,8 +68,8 @@ module Lita
 
           next_cursor = fetch_cursor(result)
           old_cursor = nil
-          
-          while !next_cursor.empty? && next_cursor != old_cursor
+
+          while !next_cursor.nil? && !next_cursor.empty? && next_cursor != old_cursor
             old_cursor = next_cursor
             params[:cursor] = next_cursor
 
@@ -78,8 +78,13 @@ module Lita
               params
             )
 
-            next_cursor = fetch_cursor(next_page)            
-            result['channels'] += next_page['channels']
+            if next_page['error'] == 'ratelimited' && next_page['retry_after'] < 5
+              sleep(next_page['retry_after'])
+              old_cursor = nil
+            else
+              next_cursor = fetch_cursor(next_page)
+              result[result_field] += next_page[result_field]
+            end
           end
           result
         end
@@ -188,7 +193,7 @@ module Lita
         end
 
         def parse_response(response, method)
-          unless response.success?
+          unless response.status == 429 || response.success?
             raise "Slack API call to #{method} failed with status code #{response.status}: '#{response.body}'. Headers: #{response.headers}"
           end
 
@@ -196,8 +201,7 @@ module Lita
         end
 
         def fetch_cursor(page)
-          next_cursor = page.dig("response_metadata", "next_cursor")
-          ERB::Util.url_encode(next_cursor)
+          page.dig("response_metadata", "next_cursor")
         end
       end
     end
