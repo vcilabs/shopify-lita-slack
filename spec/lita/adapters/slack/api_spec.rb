@@ -852,7 +852,7 @@ describe Lita::Adapters::Slack::API do
           stub.post('https://slack.com/api/conversations.list', token: token, limit: 1, types: "public_channel") do
             [http_status, {}, http_response]
           end
-          stub.post('https://slack.com/api/conversations.list', token: token, limit: 1, types: "public_channel", cursor: "dGVhbTpDMDI0RzRCR1k%3D") do
+          stub.post('https://slack.com/api/conversations.list', token: token, limit: 1, types: "public_channel", cursor: "dGVhbTpDMDI0RzRCR1k=") do
             [http_status, {}, http_response_2]
           end
         end
