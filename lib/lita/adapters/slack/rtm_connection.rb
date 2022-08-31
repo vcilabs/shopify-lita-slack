@@ -26,24 +26,10 @@ module Lita
           @robot = robot
           @config = config
           Lita.logger.debug("Before IMMapping")
-          @im_mapping = IMMapping.new(API.new(config), team_data.ims)
+          # @im_mapping = IMMapping.new(API.new(config), team_data.ims)
           Lita.logger.debug("After IMMapping")
           @websocket_url = team_data.websocket_url
           @robot_id = team_data.self.id
-
-          fork do
-            Lita.logger.debug("Inserting #{team_data.users.size} users")
-            UserCreator.create_users(team_data.users, robot, @robot_id)
-            Lita.logger.debug("Done inserting users.")
-
-            Lita.logger.debug("Inserting #{team_data.channels.size} channels")
-            RoomCreator.create_rooms(team_data.channels, robot)
-            Lita.logger.debug("Done inserting channels.")
-          end
-        end
-
-        def im_for(user_id)
-          im_mapping.im_for(user_id)
         end
 
         def create_websocket(queue, options, &block)

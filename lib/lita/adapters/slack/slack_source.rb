@@ -16,7 +16,7 @@ module Lita
         def timestamp
           @extensions[:timestamp]
         end
-        
+
         def thread_ts
           @extensions[:thread_ts]
         end
